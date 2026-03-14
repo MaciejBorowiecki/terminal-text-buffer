@@ -1,4 +1,4 @@
-package src.main.java.terminal;
+package terminal;
 
 public class Cursor {
     private int col = 0;
@@ -7,10 +7,9 @@ public class Cursor {
     private int screenHeight;
 
     public Cursor(int col, int row, int screenWidth, int screenHeight) {
-        setColumn(col);
-        setRow(row);
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        setPosition(col, row);
     }
 
     public Cursor(int screenWidth, int screenHeight) {
@@ -34,13 +33,13 @@ public class Cursor {
 
     public void setColumn(int col) {
         col = Math.max(0, col);
-        col = Math.min(col, screenWidth);
+        col = Math.min(col, screenWidth - 1);
         this.col = col;
     }
 
     public void setRow(int row) {
         row = Math.max(0, row);
-        row = Math.min(row, screenHeight);
+        row = Math.min(row, screenHeight - 1);
         this.row = row;
     }
 
