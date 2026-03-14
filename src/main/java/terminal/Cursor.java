@@ -1,4 +1,4 @@
-package src.main.java;
+package src.main.java.terminal;
 
 public class Cursor {
     private int col = 0;
