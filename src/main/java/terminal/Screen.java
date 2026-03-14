@@ -31,6 +31,25 @@ public class Screen {
         return height;
     }
 
+    public void clear(){
+        for(int i = 0; i < height; i++){
+            rows[i] = new Row(width);
+        }
+    }
+
+    private void checkBounds(int row){
+        if (row < 0 || row >= height) {
+            throw new IndexOutOfBoundsException("Row index outside of bounds: " + row);
+        }
+    }
+
+    private void checkBounds(int row, int col) {
+        checkBounds(row);
+        if (col < 0 || col >= width) {
+            throw new IndexOutOfBoundsException("Column index outside of bounds: " + col);
+        }
+    }
+
     /**
      * Moves whole screen 1 row upwards.
      * @return Row that has moved outside screen boundaries.
@@ -43,30 +62,17 @@ public class Screen {
     }
 
     public char getCharacterAt(int row, int col) {
+        checkBounds(row, col);
         return rows[row].getCharacter(col);
     }
 
-    public byte getForegroundColorAt(int row, int col) {
-        return rows[row].getForegroundColor(col);
-    }
-
-    public byte getBackgroundColorAt(int row, int col) {
-        return rows[row].getBackgroundColor(col);
-    }
-
-    public boolean getItalicAt(int row, int col) {
-        return rows[row].getItalic(col);
-    }
-
-    public boolean getBoldAt(int row, int col) {
-        return rows[row].getBold(col);
-    }
-
-    public boolean getUnderlineAt(int row, int col) {
-        return rows[row].getUnderline(col);
+    public TextAttributes getTextAttributeAt(int row, int col) {
+        checkBounds(row, col);
+        return rows[row].getTextAttributes(col);
     }
 
     public Row getRowAt(int row) {
+        checkBounds(row);
         return rows[row];
     }
 

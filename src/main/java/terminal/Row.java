@@ -1,11 +1,13 @@
 package terminal;
 
+import org.w3c.dom.Text;
+
 /**
  * Represents a single line (horizontal line of text) on the terminal screen.
  * Stores characters and their attributes (background/text colors, styles) in parallel arrays.
  */
 
-public class Row {
+public class Row implements ReadableRow{
     private int width;
     private char[] characters;
     private byte[] bgColors;
@@ -14,7 +16,7 @@ public class Row {
     private boolean[] stylesUnderline;
     private boolean[] stylesBold;
 
-    public Row(int width){
+    public Row(int width) {
         this.width = width;
         characters = new char[width];
         bgColors = new byte[width];
@@ -26,14 +28,13 @@ public class Row {
         java.util.Arrays.fill(characters, ' ');
     }
 
-    public void setCell(int i, char c, byte bgColor, byte fgColor, boolean italic,
-                        boolean underline, boolean bold){
+    public void setCell(int i, char c, TextAttributes attributes){
         setCharacter(i, c);
-        setBackgroundColor(i, bgColor);
-        setForegroundColor(i, fgColor);
-        setItalic(i,italic);
-        setBold(i, bold);
-        setUnderline(i,underline);
+        setBackgroundColor(i, attributes.backgroundColor());
+        setForegroundColor(i, attributes.foregroundColor());
+        setItalic(i, attributes.isItalic());
+        setBold(i, attributes.isBold());
+        setUnderline(i, attributes.isUnderline());
     }
 
     public int getWidth(){
@@ -48,43 +49,34 @@ public class Row {
         characters[i] = c;
     }
 
-    public byte getForegroundColor(int i){
-        return fgColors[i];
-    }
-
     public void setForegroundColor(int i, byte c){
         fgColors[i] = c;
-    }
-
-    public byte getBackgroundColor(int i){
-        return bgColors[i];
     }
 
     public void setBackgroundColor(int i, byte c){
         bgColors[i] = c;
     }
 
-    public boolean getUnderline(int i){
-        return stylesUnderline[i];
-    }
-
     public void setUnderline(int i, boolean b){
         stylesUnderline[i] = b;
-    }
-
-    public boolean getItalic(int i){
-        return stylesItalic[i];
     }
 
     public void setItalic(int i, boolean b){
         stylesItalic[i] = b;
     }
-    public boolean getBold(int i){
-        return stylesBold[i];
-    }
 
     public void setBold(int i, boolean b){
         stylesBold[i] = b;
+    }
+
+    public TextAttributes getTextAttributes(int i){
+        return new TextAttributes(
+                fgColors[i],
+                bgColors[i],
+                stylesBold[i],
+                stylesItalic[i],
+                stylesUnderline[i]
+        );
     }
 
     @Override

@@ -31,6 +31,11 @@ public class Scrollback {
         return head;
     }
 
+    public void clear(){
+        head = 0;
+        size = 0;
+    }
+
     public void addRow(ReadableRow droppedRow) {
         if (size < capacity) {
             buffer[(head + size) % capacity] = droppedRow;
@@ -51,45 +56,38 @@ public class Scrollback {
         }
     }
 
-    private int calculatePhysicalIndex(int index) {
-        checkLogicalIndex(index);
-        return (head + index) % capacity;
+    private void checkColumnIndex(int physicalRow, int col){
+        if (col < 0 || col >= buffer[physicalRow].getWidth()) {
+            throw new IndexOutOfBoundsException("Invalid column index: " + col);
+        }
     }
 
-    public ReadableRow getRow(int logicalIndex) {
+    private int calculatePhysicalIndex(int rowIndex) {
+        checkLogicalIndex(rowIndex);
+        return (head + rowIndex) % capacity;
+    }
+
+    private int calculatePhysicalIndex(int row, int col) {
+        int physicalRow = calculatePhysicalIndex(row);
+        checkColumnIndex(physicalRow, col);
+        return physicalRow;
+    }
+
+    public ReadableRow getRowAt(int logicalIndex) {
         int physicalIndex = calculatePhysicalIndex(logicalIndex);
         return buffer[physicalIndex];
     }
 
     public char getCharacterAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
+        int physicalRow = calculatePhysicalIndex(row, col);
         return buffer[physicalRow].getCharacter(col);
     }
 
-    public byte getForegroundColorAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
-        return buffer[physicalRow].getForegroundColor(col);
+    public TextAttributes getTextAttributeAt(int row, int col) {
+        int physicalRow = calculatePhysicalIndex(row, col);
+        return buffer[physicalRow].getTextAttributes(col);
     }
 
-    public byte getBackgroundColorAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
-        return buffer[physicalRow].getBackgroundColor(col);
-    }
-
-    public boolean getItalicAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
-        return buffer[physicalRow].getItalic(col);
-    }
-
-    public boolean getBoldAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
-        return buffer[physicalRow].getBold(col);
-    }
-
-    public boolean getUnderlineAt(int row, int col) {
-        int physicalRow = calculatePhysicalIndex(row);
-        return buffer[physicalRow].getUnderline(col);
-    }
 
     @Override
     public String toString() {
