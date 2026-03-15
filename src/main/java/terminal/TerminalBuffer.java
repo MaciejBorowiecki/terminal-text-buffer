@@ -46,13 +46,25 @@ public class TerminalBuffer {
      */
     private void handleNewLine(){
         if (cursor.getRow() == (screen.getHeight() - 1)) {
-            Row droppedRow = screen.scrollUp();
-            scrollback.addRow(droppedRow);
-            cursor.setColumn(0);
+            handleScrollUp();
         } else {
             cursor.moveDown(1);
-            cursor.setColumn(0);
         }
+        cursor.setColumn(0);
+    }
+
+    private void handleScrollUp(){
+        Row topScreenRow = screen.getTopRow();
+        Row recycledRow = (Row) scrollback.getEvictedRow();
+
+        scrollback.addRow(topScreenRow);
+
+        if(recycledRow == null) {
+            recycledRow = new Row(screen.getWidth());
+        } else {
+            recycledRow.clear();
+        }
+        screen.scrollUp(recycledRow);
     }
 
     /**
@@ -98,8 +110,7 @@ public class TerminalBuffer {
      * doesn't affect current cursor position.
      */
     public void insertEmptyLine(){
-        Row droppedRow = screen.scrollUp();
-        scrollback.addRow(droppedRow);
+        handleScrollUp();
     }
 
     /**

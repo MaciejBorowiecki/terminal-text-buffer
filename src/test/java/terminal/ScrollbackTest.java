@@ -18,23 +18,26 @@ class ScrollbackTest {
     }
 
     @Test
-    void shouldWrapAroundWhenCapacityIsReached() {
+    void shouldWrapAroundAndReturnEvictedRow() {
         Scrollback scrollback = new Scrollback(3);
 
         Row r1 = new Row(5); r1.setCharacter(0, 'A');
         Row r2 = new Row(5); r2.setCharacter(0, 'B');
         Row r3 = new Row(5); r3.setCharacter(0, 'C');
-        Row r4 = new Row(5); r4.setCharacter(0, 'D'); // this one overrides oldest row ('A')
+        Row r4 = new Row(5); r4.setCharacter(0, 'D');
 
         scrollback.addRow(r1);
         scrollback.addRow(r2);
         scrollback.addRow(r3);
-        scrollback.addRow(r4); // the buffer wraps
 
-        assertEquals(3, scrollback.getSize(), "Size should not be greater than capacity");
-        assertEquals('B', scrollback.getRowAt(0).getCharacter(0), "The oldest one at this point should be 'B'");
-        assertEquals('C', scrollback.getRowAt(1).getCharacter(0));
-        assertEquals('D', scrollback.getRowAt(2).getCharacter(0), "The newest row should at this point be 'D'");
+        ReadableRow evictedRow = scrollback.getEvictedRow();
+        assertNotNull(evictedRow, "Bufor is full, should return row for recycling.");
+        assertEquals('A', evictedRow.getCharacter(0), "It should be oldest row ('A')");
+
+        scrollback.addRow(r4);
+
+        assertEquals(3, scrollback.getSize());
+        assertEquals('B', scrollback.getRowAt(0).getCharacter(0));
     }
 
     @Test

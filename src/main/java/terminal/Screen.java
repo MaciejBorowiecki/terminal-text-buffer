@@ -33,7 +33,7 @@ public class Screen {
 
     public void clear(){
         for(int i = 0; i < height; i++){
-            rows[i] = new Row(width);
+            rows[i].clear();
         }
     }
 
@@ -52,13 +52,15 @@ public class Screen {
 
     /**
      * Moves whole screen 1 row upwards.
-     * @return Row that has moved outside screen boundaries.
+     * @param recycledRow Oldest row in the scrollback to reuse, or null if scrollback is not full.
      */
-    public Row scrollUp() {
-        Row oldestRow = rows[0];
+    public void scrollUp(Row recycledRow) {
         System.arraycopy(rows, 1, rows, 0, height - 1);
-        rows[height - 1] = new Row(width);
-        return oldestRow;
+        rows[height - 1] = recycledRow;
+    }
+
+    public Row getTopRow(){
+        return rows[0];
     }
 
     public void setCell(int row, int col, char c, TextAttributes textAttributes) {

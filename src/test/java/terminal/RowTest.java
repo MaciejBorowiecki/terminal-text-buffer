@@ -32,4 +32,21 @@ class RowTest {
         assertEquals((byte) 1, retrievedAttrs.foregroundColor());
         assertEquals((byte) 2, retrievedAttrs.backgroundColor());
     }
+
+    @Test
+    void shouldResetRowState() {
+        Row row = new Row(5);
+        TextAttributes attrs = new TextAttributes((byte) 1, (byte) 2, true, true, true);
+
+        row.setCell(0, 'X', attrs);
+
+        row.clear();
+
+        assertEquals(' ', row.getCharacter(0));
+
+        TextAttributes resetAttrs = row.getTextAttributes(0);
+        assertFalse(resetAttrs.isBold());
+        assertEquals((byte) 0, resetAttrs.foregroundColor());
+        assertEquals((byte) 7, resetAttrs.backgroundColor());
+    }
 }

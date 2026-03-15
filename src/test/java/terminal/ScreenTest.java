@@ -34,10 +34,15 @@ class ScreenTest {
         screen.setCell(0, 0, 'A', attrs);
         screen.setCell(1, 0, 'B', attrs);
 
-        Row droppedRow = screen.scrollUp();
+        Row topRow = screen.getTopRow();
+        assertEquals('A', topRow.getCharacter(0));
 
-        assertEquals('A', droppedRow.getCharacter(0), "The returned row should be the one at the very top");
-        assertEquals('B', screen.getCharacterAt(0, 0), "Second row should be the one at the very top");
-        assertEquals(' ', screen.getCharacterAt(2, 0), "New row at the bottom should be empty");
+        Row newBottom = new Row(5);
+        newBottom.setCharacter(0, 'Z');
+
+        screen.scrollUp(newBottom);
+
+        assertEquals('B', screen.getCharacterAt(0, 0));
+        assertEquals('Z', screen.getCharacterAt(2, 0));
     }
 }

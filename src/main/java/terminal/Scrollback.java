@@ -36,6 +36,13 @@ public class Scrollback {
         size = 0;
     }
 
+    public ReadableRow getEvictedRow() {
+        if (size == capacity){
+            return buffer[head];
+        }
+        return null;
+    }
+
     public void addRow(ReadableRow droppedRow) {
         if (size < capacity) {
             buffer[(head + size) % capacity] = droppedRow;

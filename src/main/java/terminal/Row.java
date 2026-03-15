@@ -77,6 +77,18 @@ public class Row implements ReadableRow{
         );
     }
 
+    /**
+     * Fill row with default values.
+     */
+    public void clear() {
+        java.util.Arrays.fill(characters, ' ');
+        java.util.Arrays.fill(bgColors, (byte) 7); // Domyślny background (np. WHITE)
+        java.util.Arrays.fill(fgColors, (byte) 0); // Domyślny foreground (np. BLACK)
+        java.util.Arrays.fill(stylesBold, false);
+        java.util.Arrays.fill(stylesItalic, false);
+        java.util.Arrays.fill(stylesUnderline, false);
+    }
+
     @Override
     public String toString(){
         return new String(characters);
