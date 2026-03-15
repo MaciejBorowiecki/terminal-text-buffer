@@ -1,7 +1,5 @@
 package terminal;
 
-import org.w3c.dom.Text;
-
 /**
  * Represents a single line (horizontal line of text) on the terminal screen.
  * Stores characters and their attributes (background/text colors, styles) in parallel arrays.

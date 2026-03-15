@@ -1,26 +1,25 @@
 package terminal;
 
 public class Cursor {
-    private int col = 0;
-    private int row = 0;
+    private int col;
+    private int row;
     private int screenWidth;
     private int screenHeight;
 
     public Cursor(int col, int row, int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        setPosition(col, row);
+        setPosition(row, col);
     }
 
     public Cursor(int screenWidth, int screenHeight) {
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
+        this(0,0, screenWidth, screenHeight);
     }
 
-    public record Position(int col, int row) {}
+    public record Position(int row, int col) {}
 
     public Position getPosition() {
-        return new Position(col, row);
+        return new Position(row, col);
     }
 
     public int getColumn() {
@@ -43,7 +42,7 @@ public class Cursor {
         this.row = row;
     }
 
-    public void setPosition(int col, int row) {
+    public void setPosition(int row, int col) {
         setColumn(col);
         setRow(row);
     }
