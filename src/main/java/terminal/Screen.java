@@ -61,6 +61,11 @@ public class Screen {
         return oldestRow;
     }
 
+    public void setCell(int row, int col, char c, TextAttributes textAttributes) {
+        checkBounds(row, col);
+        rows[row].setCell(col, c, textAttributes);
+    }
+
     public char getCharacterAt(int row, int col) {
         checkBounds(row, col);
         return rows[row].getCharacter(col);
