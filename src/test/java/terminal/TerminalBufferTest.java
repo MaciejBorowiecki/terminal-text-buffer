@@ -77,4 +77,35 @@ class TerminalBufferTest {
         assertEquals(' ', buffer.getCharacterAtScreen(4, 5));
         assertEquals(new Cursor.Position(0,0), buffer.getCursorPosition());
     }
+
+    @Test
+    void shouldHandleWideCharactersAndMoveCursorAppropriately() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+
+        buffer.insertText("A🚀B");
+
+        assertEquals('A', buffer.getCharacterAtScreen(0, 0));
+
+        // '🚀' (0x1F680) lands on column 1, column 2 is a dummy (-1)
+        assertEquals(0x1F680, buffer.getCharacterAtScreen(0, 1));
+        assertEquals(-1, buffer.getCharacterAtScreen(0, 2));
+
+        // 'B' lands on column 3 because the cursor jumped over the dummy
+        assertEquals('B', buffer.getCharacterAtScreen(0, 3));
+    }
+
+    @Test
+    void shouldWrapWideCharacterIfAtLastColumn() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 9); // Cursor is at the last column of the screen
+
+        buffer.writeCharacter(0x1F680); //W e enter 🚀 (width 2)
+
+        // There is no room for a rocket, so a space should be inserted at the end of line 0:
+        assertEquals(' ', buffer.getCharacterAtScreen(0, 9), "The last column should be erased with a space");
+
+        // The rocket should jump to a new line:
+        assertEquals(0x1F680, buffer.getCharacterAtScreen(1, 0), "The character should fall at the very beginning of the new line");
+        assertEquals(-1, buffer.getCharacterAtScreen(1, 1), "The dummy should be next to the new line sign");
+    }
 }

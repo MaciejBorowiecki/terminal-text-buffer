@@ -63,14 +63,14 @@ public class Screen {
         return rows[0];
     }
 
-    public void setCell(int row, int col, char c, TextAttributes textAttributes) {
+    public void setCell(int row, int col, int uniCode, TextAttributes textAttributes) {
         checkBounds(row, col);
-        rows[row].setCell(col, c, textAttributes);
+        rows[row].setCell(col, uniCode, textAttributes);
     }
 
-    public char getCharacterAt(int row, int col) {
+    public int getCharacterUnicodeAt(int row, int col) {
         checkBounds(row, col);
-        return rows[row].getCharacter(col);
+        return rows[row].getCharacterUnicode(col);
     }
 
     public TextAttributes getTextAttributeAt(int row, int col) {

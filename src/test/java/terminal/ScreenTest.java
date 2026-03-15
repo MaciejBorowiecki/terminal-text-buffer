@@ -10,19 +10,19 @@ class ScreenTest {
         Screen screen = new Screen(80, 24);
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            screen.getCharacterAt(25, 0);
+            screen.getCharacterUnicodeAt(25, 0);
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            screen.getCharacterAt(0, 85);
+            screen.getCharacterUnicodeAt(0, 85);
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            screen.getCharacterAt(-1, 30);
+            screen.getCharacterUnicodeAt(-1, 30);
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            screen.getCharacterAt(3, -1);
+            screen.getCharacterUnicodeAt(3, -1);
         });
     }
 
@@ -35,14 +35,14 @@ class ScreenTest {
         screen.setCell(1, 0, 'B', attrs);
 
         Row topRow = screen.getTopRow();
-        assertEquals('A', topRow.getCharacter(0));
+        assertEquals('A', topRow.getCharacterUnicode(0));
 
         Row newBottom = new Row(5);
-        newBottom.setCharacter(0, 'Z');
+        newBottom.setCharacterUnicode(0, 'Z');
 
         screen.scrollUp(newBottom);
 
-        assertEquals('B', screen.getCharacterAt(0, 0));
-        assertEquals('Z', screen.getCharacterAt(2, 0));
+        assertEquals('B', screen.getCharacterUnicodeAt(0, 0));
+        assertEquals('Z', screen.getCharacterUnicodeAt(2, 0));
     }
 }

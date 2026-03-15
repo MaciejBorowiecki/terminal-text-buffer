@@ -9,22 +9,22 @@ class ScrollbackTest {
     void shouldAddRowsWithoutWrapping() {
         Scrollback scrollback = new Scrollback(5);
         Row row1 = new Row(10);
-        row1.setCharacter(0, '1');
+        row1.setCharacterUnicode(0, '1');
 
         scrollback.addRow(row1);
 
         assertEquals(1, scrollback.getSize());
-        assertEquals('1', scrollback.getRowAt(0).getCharacter(0));
+        assertEquals('1', scrollback.getRowAt(0).getCharacterUnicode(0));
     }
 
     @Test
     void shouldWrapAroundAndReturnEvictedRow() {
         Scrollback scrollback = new Scrollback(3);
 
-        Row r1 = new Row(5); r1.setCharacter(0, 'A');
-        Row r2 = new Row(5); r2.setCharacter(0, 'B');
-        Row r3 = new Row(5); r3.setCharacter(0, 'C');
-        Row r4 = new Row(5); r4.setCharacter(0, 'D');
+        Row r1 = new Row(5); r1.setCharacterUnicode(0, 'A');
+        Row r2 = new Row(5); r2.setCharacterUnicode(0, 'B');
+        Row r3 = new Row(5); r3.setCharacterUnicode(0, 'C');
+        Row r4 = new Row(5); r4.setCharacterUnicode(0, 'D');
 
         scrollback.addRow(r1);
         scrollback.addRow(r2);
@@ -32,12 +32,12 @@ class ScrollbackTest {
 
         ReadableRow evictedRow = scrollback.getEvictedRow();
         assertNotNull(evictedRow, "Bufor is full, should return row for recycling.");
-        assertEquals('A', evictedRow.getCharacter(0), "It should be oldest row ('A')");
+        assertEquals('A', evictedRow.getCharacterUnicode(0), "It should be oldest row ('A')");
 
         scrollback.addRow(r4);
 
         assertEquals(3, scrollback.getSize());
-        assertEquals('B', scrollback.getRowAt(0).getCharacter(0));
+        assertEquals('B', scrollback.getRowAt(0).getCharacterUnicode(0));
     }
 
     @Test
@@ -67,7 +67,7 @@ class ScrollbackTest {
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            scrollback.getCharacterAt(0, 0);
+            scrollback.getCharacterUnicodeAt(0, 0);
         });
 
         scrollback.addRow(new Row(10));
@@ -80,7 +80,7 @@ class ScrollbackTest {
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            scrollback.getCharacterAt(0, 0);
+            scrollback.getCharacterUnicodeAt(0, 0);
         });
     }
 
@@ -90,11 +90,11 @@ class ScrollbackTest {
         scrollback.addRow(new Row(10));
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            scrollback.getCharacterAt(0,-1);
+            scrollback.getCharacterUnicodeAt(0,-1);
         });
 
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            scrollback.getCharacterAt(0,11);
+            scrollback.getCharacterUnicodeAt(0,11);
         });
     }
 }
