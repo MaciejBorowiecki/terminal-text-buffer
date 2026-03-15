@@ -85,9 +85,9 @@ public class Scrollback {
         return buffer[physicalIndex];
     }
 
-    public char getCharacterAt(int row, int col) {
+    public int getCharacterUnicodeAt(int row, int col) {
         int physicalRow = calculatePhysicalIndex(row, col);
-        return buffer[physicalRow].getCharacter(col);
+        return buffer[physicalRow].getCharacterUnicode(col);
     }
 
     public TextAttributes getTextAttributeAt(int row, int col) {

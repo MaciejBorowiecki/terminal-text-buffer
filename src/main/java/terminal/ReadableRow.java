@@ -2,7 +2,7 @@ package terminal;
 
 public interface ReadableRow {
     int getWidth();
-    char getCharacter(int i);
+    int getCharacterUnicode(int i);
     TextAttributes getTextAttributes(int i);
 
     @Override

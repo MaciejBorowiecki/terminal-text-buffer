@@ -2,12 +2,13 @@ package terminal;
 
 /**
  * Represents a single line (horizontal line of text) on the terminal screen.
- * Stores characters and their attributes (background/text colors, styles) in parallel arrays.
+ * Stores characters (their Unicode) and their attributes (background/text colors, styles) in parallel arrays.
+ * -1 represents that this cell is part of bigger character (occupying two cells).
  */
 
 public class Row implements ReadableRow{
     private int width;
-    private char[] characters;
+    private int[] characters;
     private byte[] bgColors;
     private byte[] fgColors;
     private boolean[] stylesItalic;
@@ -16,7 +17,7 @@ public class Row implements ReadableRow{
 
     public Row(int width) {
         this.width = width;
-        characters = new char[width];
+        characters = new int[width];
         bgColors = new byte[width];
         fgColors = new byte[width];
         stylesItalic = new boolean[width];
@@ -26,8 +27,8 @@ public class Row implements ReadableRow{
         java.util.Arrays.fill(characters, ' ');
     }
 
-    public void setCell(int i, char c, TextAttributes attributes){
-        setCharacter(i, c);
+    public void setCell(int i, int uniCode, TextAttributes attributes){
+        setCharacterUnicode(i, uniCode);
         setBackgroundColor(i, attributes.backgroundColor());
         setForegroundColor(i, attributes.foregroundColor());
         setItalic(i, attributes.isItalic());
@@ -39,12 +40,22 @@ public class Row implements ReadableRow{
         return width;
     }
 
-    public char getCharacter(int i){
+    public int getCharacterUnicode(int i){
         return characters[i];
     }
 
-    public void setCharacter(int i, char c){
-        characters[i] = c;
+    public void setCharacterUnicode(int i, int uniCode){
+        // The cell we are modifying was part of wider character
+        if (i > 0 && characters[i] == -1){
+            characters[i-1] = ' ';
+        }
+        if(i + 1 < getWidth() && characters[i+1] == -1){
+            characters[i+1] = ' ';
+        }
+        if (WcWidth.calculateWidth(uniCode) == 2) {
+            characters[i + 1] = -1; // The character after as will be part of us (wider character)
+        }
+        characters[i] = uniCode;
     }
 
     public void setForegroundColor(int i, byte c){
@@ -91,6 +102,14 @@ public class Row implements ReadableRow{
 
     @Override
     public String toString(){
-        return new String(characters);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < width; i++) {
+            int codePoint = characters[i];
+            if(codePoint == -1){
+                continue;
+            }
+            sb.append(Character.toChars(codePoint));
+        }
+        return sb.toString();
     }
 }

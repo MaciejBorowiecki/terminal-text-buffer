@@ -69,40 +69,59 @@ public class TerminalBuffer {
 
     /**
      * Write `c` at current cursor position, then move cursor.
-     * @param c given character.
+     * @param uniCode given character.
      */
-    public void writeCharacter(char c) {
+    public void writeCharacter(int uniCode) {
+        int width = WcWidth.calculateWidth(uniCode);
+        if(width == 0) return; // ignore characters of 0 width
+
         int cCol = cursor.getColumn();
         int cRow = cursor.getRow();
 
-        screen.setCell(cRow, cCol, c, currentAttributes);
+        // If character is wider than space left on the line - write it on the next one.
+        if (width == 2 && cCol == screen.getWidth() - 1) {
+            screen.setCell(cRow, cCol, ' ', currentAttributes);
+            handleNewLine();
 
+            cCol = cursor.getColumn();
+            cRow = cursor.getRow();
+        }
+
+        screen.setCell(cRow, cCol, uniCode, currentAttributes);
         if (cCol == (screen.getWidth() - 1)) {
             handleNewLine();
         } else {
-            cursor.moveRight(1);
+            cursor.moveRight(width);
         }
     }
 
     /**
-     * Fill whole line at current cursor position, with character `c`.
-     * @param c given character.
+     * Fill whole line at current cursor position, with codePoint.
+     * @param codePoint given codePoint character.
      */
-    public void fillLine(char c) {
-        for(int col = 0; col < screen.getWidth(); col++){
-            screen.setCell(cursor.getRow(), col, c, currentAttributes);
+    public void fillLine(int codePoint) {
+        int width = WcWidth.calculateWidth(codePoint);
+        if (width == 0) return;
+
+        int screenWidth = screen.getWidth();
+        int row = cursor.getRow();
+
+        for (int col = 0; col < screenWidth; col += width) {
+            if (width == 2 && col == screenWidth - 1) {
+                screen.setCell(row, col, ' ', currentAttributes);
+            } else {
+                screen.setCell(row, col, codePoint, currentAttributes);
+            }
         }
     }
 
     /**
      * Insert `text` into the buffer starting from current cursor position,
-     * possibly wraps the line.
+     * possibly wraps the line. Handles wide characters and surrogate pairs.
      * @param text given text.
      */
     public void insertText(String text) {
-        for(int i = 0; i < text.length(); i++) {
-            writeCharacter(text.charAt(i));
-        }
+        text.codePoints().forEach(this::writeCharacter);
     }
 
     /**
@@ -139,21 +158,21 @@ public class TerminalBuffer {
      * @param col column of the character.
      * @return character at (row, col) position.
      */
-    public char getCharacterAbsolute(int row, int col){
+    public int getCharacterAbsolute(int row, int col){
         int scrollBackSize = scrollback.getSize();
         if(row < scrollBackSize){
-            return scrollback.getCharacterAt(row, col);
+            return scrollback.getCharacterUnicodeAt(row, col);
         } else {
-            return screen.getCharacterAt(row - scrollBackSize, col);
+            return screen.getCharacterUnicodeAt(row - scrollBackSize, col);
         }
     }
 
-    public char getCharacterAtScreen(int row, int col){
-        return screen.getCharacterAt(row, col);
+    public int getCharacterAtScreen(int row, int col){
+        return screen.getCharacterUnicodeAt(row, col);
     }
 
-    public char getCharacterAtScrollback(int row, int col){
-        return scrollback.getCharacterAt(row, col);
+    public int getCharacterAtScrollback(int row, int col){
+        return scrollback.getCharacterUnicodeAt(row, col);
     }
 
     public String getLineContentScreen(int row){

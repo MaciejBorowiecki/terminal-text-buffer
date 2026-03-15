@@ -19,3 +19,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+This project is licensed under the MIT License (see above) for code that
+was written by the project authors.
+
+This project also includes third-party components that are distributed
+under their own licenses. These components are NOT relicensed under MIT;
+they remain available under the licenses noted below.
+
+1) wcwidth9
+   - File(s): src/main/java/terminal/WcWidth.java (ported from C to Java)
+   - Original author: Joshua Rubin
+   - Based on code from: Neovim contributors
+   - License: Apache License, Version 2.0
+   - Repository / source: https://github.com/joshuarubin/wcwidth9
+   - See: third_party/wcwidth9/LICENSE (copy of the Apache-2.0 text)
