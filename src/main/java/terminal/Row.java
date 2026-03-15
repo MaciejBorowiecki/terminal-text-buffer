@@ -14,6 +14,7 @@ public class Row implements ReadableRow{
     private boolean[] stylesItalic;
     private boolean[] stylesUnderline;
     private boolean[] stylesBold;
+    private boolean isWrapped = false;
 
     public Row(int width) {
         this.width = width;
@@ -34,6 +35,13 @@ public class Row implements ReadableRow{
         setItalic(i, attributes.isItalic());
         setBold(i, attributes.isBold());
         setUnderline(i, attributes.isUnderline());
+    }
+
+    public boolean isWrapped() {
+        return isWrapped;
+    }
+    public void setWrapped(boolean isWrapped) {
+        this.isWrapped = isWrapped;
     }
 
     public int getWidth(){
@@ -98,6 +106,7 @@ public class Row implements ReadableRow{
         java.util.Arrays.fill(stylesBold, false);
         java.util.Arrays.fill(stylesItalic, false);
         java.util.Arrays.fill(stylesUnderline, false);
+        setWrapped(false);
     }
 
     @Override

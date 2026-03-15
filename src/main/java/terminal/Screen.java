@@ -68,6 +68,10 @@ public class Screen {
         rows[row].setCell(col, uniCode, textAttributes);
     }
 
+    public void setWrapped(int row){
+        rows[row].setWrapped(true);
+    }
+
     public int getCharacterUnicodeAt(int row, int col) {
         checkBounds(row, col);
         return rows[row].getCharacterUnicode(col);

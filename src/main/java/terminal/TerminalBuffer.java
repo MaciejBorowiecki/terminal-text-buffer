@@ -81,6 +81,8 @@ public class TerminalBuffer {
         // If character is wider than space left on the line - write it on the next one.
         if (width == 2 && cCol == screen.getWidth() - 1) {
             screen.setCell(cRow, cCol, ' ', currentAttributes);
+
+            screen.setWrapped(cRow);
             handleNewLine();
 
             cCol = cursor.getColumn();
@@ -89,6 +91,7 @@ public class TerminalBuffer {
 
         screen.setCell(cRow, cCol, uniCode, currentAttributes);
         if (cCol == (screen.getWidth() - 1)) {
+            screen.setWrapped(cRow);
             handleNewLine();
         } else {
             cursor.moveRight(width);
