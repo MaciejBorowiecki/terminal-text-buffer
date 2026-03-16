@@ -169,7 +169,12 @@ public class Row implements ReadableRow{
 
     public void clearCell(int i){
         checkBounds(i);
-        setCell(i, DEFAULT_CHARACTER,WHITE, BLACK, false, false, false);
+        characters[i] = DEFAULT_CHARACTER;
+        bgColors[i] = DEFAULT_CHARACTER;
+        fgColors[i] = DEFAULT_CHARACTER;
+        stylesItalic[i] = false;
+        stylesUnderline[i] = false;
+        stylesBold[i] = false;
     }
 
     @Override

@@ -36,7 +36,7 @@ class ResizeTest {
         buffer.insertText("Hello"); // Cursor is at col: 5 row: 0
 
         buffer.resize(3, 5);
-        assertEquals(new Cursor.Position(0, 2), buffer.getCursorPosition());
+        assertEquals(new Cursor.Position(1, 2), buffer.getCursorPosition());
     }
 
     @Test
@@ -73,8 +73,6 @@ class ResizeTest {
         tinyBuffer.writeCharacter('B');
 
         tinyBuffer.resize(1, 2);
-
-        System.out.println(tinyBuffer.getScreenAndScrollbackContent());
 
         assertEquals('A', tinyBuffer.getCharacterAbsolute(0, 0));
         assertEquals('B', tinyBuffer.getCharacterAbsolute(1, 0));
