@@ -16,7 +16,7 @@ A Java implementation of a terminal text buffer. This data structure simulates t
 
 To ensure high performance and low memory footprint, there is no individual `Cell` object instantiated for every coordinate.
 
-Instead, the buffer is built using the pattern. Each `Row` stores its data in parallel primitive arrays (`int[]` for Unicode characters, `byte[]` for 16 standard ANSI colors, and `boolean[]` for styles like bold, italic, underline). This entirely eliminates the overhead of Java object headers and references per cell, making the buffer highly cache-friendly.
+Instead, `Buffer` is build with `rows` and each `Row` stores its data in parallel primitive arrays (`int[]` for Unicode characters, `byte[]` for 16 standard ANSI colors, and `boolean[]` for styles like bold, italic, underline). This entirely eliminates the overhead of Java object headers and references per cell, making the buffer highly cache-friendly.
 
 Visual styling is encapsulated in the `TextAttributes` Java record. It serves only as the global "brush" state in the `TerminalBuffer` and as a lightweight Data Transfer Object (DTO) generated on-the-fly when querying cell properties, maintaining immutability without polluting the core grid memory.
 
@@ -39,7 +39,7 @@ The main interaction point is the `TerminalBuffer` class. Below are the key oper
 ### Initialising Buffer
 
 ```java
-// Initialize an 79x24 terminal with a 1000-line scrollback history
+// Initialize a 79x24 terminal with a 1000-line scrollback history
 TerminalBuffer buffer = new TerminalBuffer(79, 24, 1000);
 TerminalBuffer defaultBuffer = new TerminalBuffer(); // default values are 80, 24, 1000
 ```
