@@ -450,6 +450,7 @@ public class TerminalBuffer {
         if (state.newCursorCol < 0) state.newCursorCol = 0;
         if (state.newCursorCol >= newWidth) state.newCursorCol = newWidth - 1;
 
+        this.cursor.updateDimensions(newWidth, newHeight);
         this.cursor.setPosition(state.newCursorRow, state.newCursorCol);
     }
 

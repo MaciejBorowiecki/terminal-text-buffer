@@ -16,6 +16,13 @@ public class Cursor {
         this(0,0, screenWidth, screenHeight);
     }
 
+    public void updateDimensions(int newWidth, int newHeight) {
+        this.screenWidth = newWidth;
+        this.screenHeight = newHeight;
+        setColumn(col);
+        setRow(row);
+    }
+
     public record Position(int row, int col) {}
 
     public Position getPosition() {
