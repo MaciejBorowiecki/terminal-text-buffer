@@ -43,13 +43,6 @@ public class Screen {
         }
     }
 
-    private void checkBounds(int row, int col) {
-        checkBounds(row);
-        if (col < 0 || col >= width) {
-            throw new IndexOutOfBoundsException("Column index outside of bounds: " + col);
-        }
-    }
-
     /**
      * Moves whole screen 1 row upwards.
      * @param recycledRow Oldest row in the scrollback to reuse, or null if scrollback is not full.
@@ -63,28 +56,58 @@ public class Screen {
         return rows[0];
     }
 
+    private Row getRowAt(int row){
+        checkBounds(row);
+        return rows[row];
+    }
+
     public void setCell(int row, int col, int uniCode, TextAttributes textAttributes) {
-        checkBounds(row, col);
-        rows[row].setCell(col, uniCode, textAttributes);
+        getRowAt(row).setCell(col, uniCode, textAttributes);
+    }
+
+    public void setCell(int row, int col, int codePoint, byte fg, byte bg,
+                        boolean bold, boolean italic, boolean underline) {
+        getRowAt(row).setCell(col, codePoint, fg, bg, bold, italic, underline);
     }
 
     public void setWrapped(int row){
-        rows[row].setWrapped(true);
+        getRowAt(row).setWrapped(true);
     }
 
     public int getCharacterUnicodeAt(int row, int col) {
-        checkBounds(row, col);
-        return rows[row].getCharacterUnicode(col);
+        return getRowAt(row).getCharacterUnicode(col);
     }
 
     public TextAttributes getTextAttributeAt(int row, int col) {
-        checkBounds(row, col);
-        return rows[row].getTextAttributes(col);
+        return getRowAt(row).getTextAttributes(col);
     }
 
-    public Row getRowAt(int row) {
-        checkBounds(row);
-        return rows[row];
+    public String getRowString(int row) {
+        return getRowAt(row).toString();
+    }
+
+    public boolean isWrappedAt(int row) {
+        return getRowAt(row).isWrapped();
+    }
+
+    public byte getForegroundColorAt(int row, int col) {
+        return getRowAt(row).getForegroundColorAt(col);
+    }
+
+    public byte getBackgroundColorAt(int row, int col) {
+        return getRowAt(row).getBackgroundColorAt(col);
+    }
+
+    public boolean isBoldAt(int row, int col) {
+        return getRowAt(row).isBoldAt(col);
+    }
+
+    public boolean isItalicAt(int row, int col) {
+        return getRowAt(row).isItalicAt(col);
+    }
+
+    public boolean isUnderlineAt(int row, int col) {
+        return getRowAt(row).isUnderlineAt(col);
     }
 
     @Override
