@@ -1,5 +1,7 @@
 package terminal;
 
+import java.util.Arrays;
+
 /**
  * Represents a single line (horizontal line of text) on the terminal screen.
  * Stores characters (their Unicode) and their attributes (background/text colors, styles) in parallel arrays.
@@ -7,20 +9,18 @@ package terminal;
  */
 
 public class Row implements ReadableRow{
-    private int width;
-    private int[] characters;
-    private byte[] bgColors;
-    private byte[] fgColors;
-    private boolean[] stylesItalic;
-    private boolean[] stylesUnderline;
-    private boolean[] stylesBold;
+    private final int width;
+    private final int[] characters;
+    private final byte[] bgColors;
+    private final byte[] fgColors;
+    private final boolean[] stylesItalic;
+    private final boolean[] stylesUnderline;
+    private final boolean[] stylesBold;
     private boolean isWrapped = false;
 
     private static final int WIDER_DUMMY = -1;
     private static final int DEFAULT_CHARACTER = ' ';
     private static final int WIDER_CHARACTER = 2;
-    private static final byte BLACK = (byte) 0;
-    private static final byte WHITE = (byte) 7;
 
     public Row(int width) {
         this.width = width;
@@ -31,7 +31,7 @@ public class Row implements ReadableRow{
         stylesUnderline = new boolean[width];
         stylesBold = new boolean[width];
 
-        java.util.Arrays.fill(characters, DEFAULT_CHARACTER);
+        Arrays.fill(characters, DEFAULT_CHARACTER);
     }
 
     public void setCell(int i, int uniCode, TextAttributes attributes){
@@ -159,8 +159,8 @@ public class Row implements ReadableRow{
      */
     public void clear() {
         java.util.Arrays.fill(characters, DEFAULT_CHARACTER);
-        java.util.Arrays.fill(bgColors, BLACK);
-        java.util.Arrays.fill(fgColors, WHITE);
+        java.util.Arrays.fill(bgColors, TextAttributes.COLOR_BLACK);
+        java.util.Arrays.fill(fgColors, TextAttributes.COLOR_WHITE);
         java.util.Arrays.fill(stylesBold, false);
         java.util.Arrays.fill(stylesItalic, false);
         java.util.Arrays.fill(stylesUnderline, false);
@@ -170,8 +170,8 @@ public class Row implements ReadableRow{
     public void clearCell(int i){
         checkBounds(i);
         characters[i] = DEFAULT_CHARACTER;
-        bgColors[i] = DEFAULT_CHARACTER;
-        fgColors[i] = DEFAULT_CHARACTER;
+        bgColors[i] = TextAttributes.COLOR_BLACK;
+        fgColors[i] = TextAttributes.COLOR_WHITE;
         stylesItalic[i] = false;
         stylesUnderline[i] = false;
         stylesBold[i] = false;

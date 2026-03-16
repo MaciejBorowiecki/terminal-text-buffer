@@ -5,9 +5,9 @@ package terminal;
  */
 
 public class Screen {
-    private int width;
-    private int height;
-    private Row[] rows;
+    private final int width;
+    private final int height;
+    private final Row[] rows;
 
     public Screen(int width, int height) {
         this.width = width;
