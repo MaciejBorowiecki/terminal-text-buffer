@@ -9,12 +9,12 @@ package terminal;
  * It also maintains the current cursor position and text attributes for writing.
  */
 public class TerminalBuffer {
-    private final Screen screen;
-    private final Scrollback scrollback;
+    private Screen screen;
+    private Scrollback scrollback;
     private TextAttributes currentAttributes;
     private final Cursor cursor;
 
-    TerminalBuffer(int width, int height, int scrollbackSize) {
+    public TerminalBuffer(int width, int height, int scrollbackSize) {
         screen = new Screen(width, height);
         scrollback = new Scrollback(scrollbackSize);
         currentAttributes = new TextAttributes();
@@ -30,7 +30,7 @@ public class TerminalBuffer {
      * <li><b>styles:</b> foreground white, background black, no styles applied</li>
      *  </ul>
      */
-    TerminalBuffer(){
+    public TerminalBuffer(){
         screen = new Screen();
         scrollback = new Scrollback();
         currentAttributes = new TextAttributes();
@@ -46,14 +46,14 @@ public class TerminalBuffer {
      */
     private void handleNewLine(){
         if (cursor.getRow() == (screen.getHeight() - 1)) {
-            handleScrollUp();
+            handleScrollUp(screen, scrollback);
         } else {
             cursor.moveDown(1);
         }
         cursor.setColumn(0);
     }
 
-    private void handleScrollUp(){
+    private void handleScrollUp(Screen screen, Scrollback scrollback) {
         Row topScreenRow = screen.getTopRow();
         Row recycledRow = (Row) scrollback.getEvictedRow();
 
@@ -72,7 +72,7 @@ public class TerminalBuffer {
      * @param uniCode given character.
      */
     public void writeCharacter(int uniCode) {
-        int width = WcWidth.calculateWidth(uniCode);
+        int width = getNormalizedCharWidth(uniCode);
         if(width == 0) return; // ignore characters of 0 width
 
         int cCol = cursor.getColumn();
@@ -81,6 +81,8 @@ public class TerminalBuffer {
         // If character is wider than space left on the line - write it on the next one.
         if (width == 2 && cCol == screen.getWidth() - 1) {
             screen.setCell(cRow, cCol, ' ', currentAttributes);
+
+            screen.setWrapped(cRow);
             handleNewLine();
 
             cCol = cursor.getColumn();
@@ -89,6 +91,7 @@ public class TerminalBuffer {
 
         screen.setCell(cRow, cCol, uniCode, currentAttributes);
         if (cCol == (screen.getWidth() - 1)) {
+            screen.setWrapped(cRow);
             handleNewLine();
         } else {
             cursor.moveRight(width);
@@ -100,7 +103,7 @@ public class TerminalBuffer {
      * @param codePoint given codePoint character.
      */
     public void fillLine(int codePoint) {
-        int width = WcWidth.calculateWidth(codePoint);
+        int width = getNormalizedCharWidth(codePoint);
         if (width == 0) return;
 
         int screenWidth = screen.getWidth();
@@ -129,7 +132,7 @@ public class TerminalBuffer {
      * doesn't affect current cursor position.
      */
     public void insertEmptyLine(){
-        handleScrollUp();
+        handleScrollUp(screen, scrollback);
     }
 
     /**
@@ -176,7 +179,7 @@ public class TerminalBuffer {
     }
 
     public String getLineContentScreen(int row){
-        return screen.getRowAt(row).toString();
+        return screen.getRowString(row);
     }
 
     /**
@@ -271,5 +274,232 @@ public class TerminalBuffer {
 
     public void moveCursorRight(int n) {
         cursor.moveRight(n);
+    }
+
+    /**
+     * Helper class to hold the state of the "Writer" during the reflow process.
+     */
+    private static class ReflowState {
+        int writeRow = 0;
+        int writeCol = 0;
+        int newCursorRow = -1;
+        int newCursorCol = -1;
+    }
+
+    public void resize(int newWidth, int newHeight) {
+        if (newWidth <= 0 || newHeight <= 0) return;
+        if (newWidth == screen.getWidth() && newHeight == screen.getHeight()) return;
+
+        Screen newScreen = new Screen(newWidth, newHeight);
+        Scrollback newScrollback = new Scrollback(scrollback.getCapacity());
+        ReflowState state = new ReflowState();
+
+        int oldWidth = screen.getWidth();
+
+        // Read old history and pump into new buffers
+        processScrollback(newWidth, newHeight, oldWidth, newScreen, newScrollback, state);
+
+        // Read old screen and pump into new buffers
+        processScreen(newWidth, newHeight, oldWidth, newScreen, newScrollback, state);
+
+        // Swap buffers and apply new cursor position
+        finalizeResize(newWidth, newHeight, newScreen, newScrollback, state);
+    }
+
+    /**
+     * Rewrite scrollback into new dimensions.
+     */
+    private void processScrollback(int newWidth, int newHeight, int oldWidth,
+                                   Screen newScreen, Scrollback newScrollback,
+                                   ReflowState state) {
+        int oldScrollbackSize = scrollback.getSize();
+
+        for (int r = 0; r < oldScrollbackSize; r++) {
+            int logicalEnd = getLogicalEndIndexScrollback(r, oldWidth);
+
+            for (int c = 0; c < logicalEnd; c++) {
+                int codePoint = scrollback.getCharacterUnicodeAt(r, c);
+                if (codePoint == -1) continue;
+
+                int charWidth = getNormalizedCharWidth(codePoint);
+                if (charWidth == 0) continue;
+
+                // Wrap line if character doesn't fit (Soft wrap)
+                if (state.writeCol + charWidth > newWidth) {
+                    advanceWriterRow(newWidth, newHeight, newScreen,
+                            newScrollback, state, true);
+                }
+
+                byte fg = scrollback.getForegroundColorAt(r, c);
+                byte bg = scrollback.getBackgroundColorAt(r, c);
+                boolean bold = scrollback.isBoldAt(r, c);
+                boolean italic = scrollback.isItalicAt(r, c);
+                boolean underline = scrollback.isUnderlineAt(r, c);
+
+                newScreen.setCell(state.writeRow, state.writeCol, codePoint,
+                        fg, bg, bold, italic, underline);
+                state.writeCol += charWidth;
+            }
+
+            // Handle hard enter at the end of the old row
+            if (!scrollback.isWrappedAt(r)) {
+                advanceWriterRow(newWidth, newHeight, newScreen, newScrollback,
+                        state, false);
+            }
+        }
+    }
+
+    private void processScreen(int newWidth, int newHeight, int oldWidth,
+                               Screen newScreen, Scrollback newScrollback,
+                               ReflowState state) {
+        int oldHeight = screen.getHeight();
+        int oldCursorRow = cursor.getRow();
+        int oldCursorCol = cursor.getColumn();
+
+        int maxUsedRow = oldHeight - 1;
+        while (maxUsedRow >= 0
+                && getLogicalEndIndexScreen(maxUsedRow, oldWidth,
+                maxUsedRow == oldCursorRow, oldCursorCol) == 0
+                && maxUsedRow != oldCursorRow) {
+            maxUsedRow--;
+        }
+
+        for (int r = 0; r <= maxUsedRow; r++) {
+            boolean hasCursor = (r == oldCursorRow);
+            int logicalEnd = getLogicalEndIndexScreen(r, oldWidth, hasCursor, oldCursorCol);
+
+            for (int c = 0; c < logicalEnd; c++) {
+
+                // Catch the old cursor position
+                if (hasCursor && c == oldCursorCol) {
+                    state.newCursorRow = state.writeRow;
+                    state.newCursorCol = state.writeCol;
+                }
+
+                int codePoint = screen.getCharacterUnicodeAt(r, c);
+                if (codePoint == -1) continue;
+
+                int charWidth = getNormalizedCharWidth(codePoint);
+                if (charWidth == 0) continue;
+
+                // Wrap line if character doesn't fit
+                if (state.writeCol + charWidth > newWidth) {
+                    advanceWriterRow(newWidth, newHeight, newScreen, newScrollback,
+                            state, true);
+                }
+
+                byte fg = screen.getForegroundColorAt(r, c);
+                byte bg = screen.getBackgroundColorAt(r, c);
+                boolean bold = screen.isBoldAt(r, c);
+                boolean italic = screen.isItalicAt(r, c);
+                boolean underline = screen.isUnderlineAt(r, c);
+
+                newScreen.setCell(state.writeRow, state.writeCol, codePoint,
+                        fg, bg, bold, italic, underline);
+                state.writeCol += charWidth;
+            }
+
+            // Catch cursor if it was standing right after the last character
+            if (hasCursor && oldCursorCol >= logicalEnd) {
+                state.newCursorRow = state.writeRow;
+                state.newCursorCol = state.writeCol;
+            }
+
+            // Handle hard enter at the end of the old row
+            if (!screen.isWrappedAt(r)) {
+                advanceWriterRow(newWidth, newHeight, newScreen, newScrollback,
+                        state, false);
+            }
+        }
+    }
+
+    /**
+     * Moves the writer's position to the next line.
+     * Handles pushing overflow lines from the new screen into the new scrollback.
+     */
+    private void advanceWriterRow(int newWidth, int newHeight, Screen newScreen,
+                                  Scrollback newScrollback, ReflowState state,
+                                  boolean isSoftWrap) {
+        if (isSoftWrap) {
+            newScreen.setWrapped(state.writeRow);
+        }
+
+        state.writeRow++;
+        state.writeCol = 0;
+
+        // If we exceeded the new screen height, scroll it up and save the top row to history
+        if (state.writeRow >= newHeight) {
+            handleScrollUp(newScreen, newScrollback);
+            state.writeRow = newHeight - 1;
+
+            // Adjust cursor position if it has already been placed
+            if (state.newCursorRow != -1) {
+                state.newCursorRow--;
+            }
+        }
+    }
+
+    private void finalizeResize(int newWidth, int newHeight, Screen newScreen,
+                                Scrollback newScrollback, ReflowState state) {
+        this.screen = newScreen;
+        this.scrollback = newScrollback;
+
+        // Sanity check to prevent out-of-bounds cursor
+        if (state.newCursorRow < 0) state.newCursorRow = 0;
+        if (state.newCursorRow >= newHeight) state.newCursorRow = newHeight - 1;
+        if (state.newCursorCol < 0) state.newCursorCol = 0;
+        if (state.newCursorCol >= newWidth) state.newCursorCol = newWidth - 1;
+
+        this.cursor.setPosition(state.newCursorRow, state.newCursorCol);
+    }
+
+    private int getNormalizedCharWidth(int codePoint) {
+        int charWidth = WcWidth.calculateWidth(codePoint);
+        if (charWidth == 0 && codePoint == ' ') return 1;
+        if (charWidth == 0 && codePoint != ' ') return 0;
+        return charWidth;
+    }
+
+    /**
+     * Find last non-empty character index in the row.
+     * @param r row number.
+     * @param oldWidth old row width.
+     * @return last non-empty character index.
+     */
+    private int getLogicalEndIndexScrollback(int r, int oldWidth) {
+        if (scrollback.isWrappedAt(r)) return oldWidth;
+
+        for (int c = oldWidth - 1; c >= 0; c--) {
+            if (scrollback.getCharacterUnicodeAt(r, c) != ' ') {
+                return c + 1;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Find last non-empty character index in the row.
+     * Cursor position counts as non-empty character cell no metter its content.
+     * @param r row number.
+     * @param oldWidth old row width.
+     * @param hasCursor is cursor in this row.
+     * @param oldCursorCol what was cursor column position with old width.
+     * @return last non-empty character index.
+     */
+    private int getLogicalEndIndexScreen(int r, int oldWidth, boolean hasCursor,
+                                         int oldCursorCol) {
+        int logicalEnd = oldWidth;
+
+        if (!screen.isWrappedAt(r)) {
+            logicalEnd = 0;
+            for (int c = oldWidth - 1; c >= 0; c--) {
+                if (screen.getCharacterUnicodeAt(r, c) != ' ') {
+                    logicalEnd = c + 1;
+                    break;
+                }
+            }
+        }
+
+        return logicalEnd;
     }
 }

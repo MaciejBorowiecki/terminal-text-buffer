@@ -36,6 +36,7 @@ class RowTest {
     @Test
     void shouldResetRowState() {
         Row row = new Row(5);
+        // (byte) 7 foreground color is white and (byte) 0 is black
         TextAttributes attrs = new TextAttributes((byte) 1, (byte) 2, true, true, true);
 
         row.setCell(0, 'X', attrs);
@@ -46,8 +47,8 @@ class RowTest {
 
         TextAttributes resetAttrs = row.getTextAttributes(0);
         assertFalse(resetAttrs.isBold());
-        assertEquals((byte) 0, resetAttrs.foregroundColor());
-        assertEquals((byte) 7, resetAttrs.backgroundColor());
+        assertEquals((byte) 7, resetAttrs.foregroundColor());
+        assertEquals((byte) 0, resetAttrs.backgroundColor());
     }
 
     @Test

@@ -85,6 +85,10 @@ public class Scrollback {
         return buffer[physicalIndex];
     }
 
+    public boolean isWrappedAt(int row) {
+        return getRowAt(row).isWrapped(); // Twoja metoda getRowAt(row) z interfejsu ReadableRow to obsłuży
+    }
+
     public int getCharacterUnicodeAt(int row, int col) {
         int physicalRow = calculatePhysicalIndex(row, col);
         return buffer[physicalRow].getCharacterUnicode(col);
@@ -95,6 +99,26 @@ public class Scrollback {
         return buffer[physicalRow].getTextAttributes(col);
     }
 
+    public byte getForegroundColorAt(int row, int col) {
+        // getRow() sprawdza r, a getForegroundColor() wewnątrz Row sprawdza c
+        return getRowAt(row).getForegroundColorAt(col);
+    }
+
+    public byte getBackgroundColorAt(int row, int col) {
+        return getRowAt(row).getBackgroundColorAt(col);
+    }
+
+    public boolean isBoldAt(int row, int col) {
+        return getRowAt(row).isBoldAt(col);
+    }
+
+    public boolean isItalicAt(int row, int col) {
+        return getRowAt(row).isItalicAt(col);
+    }
+
+    public boolean isUnderlineAt(int row, int col) {
+        return getRowAt(row).isUnderlineAt(col);
+    }
 
     @Override
     public String toString() {
