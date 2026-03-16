@@ -5,21 +5,20 @@ A Java implementation of a terminal text buffer. This data structure simulates t
 ## Features
 
 * **Grid-based Text Management**: Splits the buffer into two logical components:
-    * **Screen**: The actively editable area constrained to specific dimensions (e.g., 80x24).
-    * **Scrollback**: A preserved, read-only history of lines that have scrolled off the top of the screen.
-* **Text Attributes**: Supports 16 standard terminal colors (foreground and background) and text styles (bold, italic, underline).
-  * *stored as flags in parallel arrays*
-* **Wider Characters Support**: Supports Unicode wider characters occupying 2 grid cells (e.g., Emojis, CJK ideographs).
-* **Automatic Wrapping & Scrolling**: Overwrites content at the cursor, automatically wraps text to the next line when reaching the right edge, and triggers screen scrolling when reaching the bottom.
+  * **Screen**: The actively editable area constrained to specific dimensions (e.g., 80x24).
+  * **Scrollback**: A preserved, read-only history of lines that have scrolled off the top of the screen.
+* **Automatic Wrapping & Reflow**: Seamlessly overwrites content at the cursor, automatically wraps text to the next line when reaching the right edge, and pushes overflow to the history buffer. Supports dynamic screen resizing with content reflow.
+  * Content knows whether it was wrapped or not so it can be 'unwrapped' in case of another resizing.
+* **Wider Characters Support**: Fully handles Unicode characters occupying 2 grid cells (e.g., Emojis, CJK ideographs) ensuring proper cell alignment and cursor jumping.
 * **Memory-Optimized Data Model**: Avoids heavy per-cell objects by utilizing primitive parallel arrays for the grid, minimizing memory footprint and Garbage Collector overhead. The `TextAttributes` record acts purely as a global brush state and an on-the-fly DTO.
 
 ## Architecture & Memory Model
 
-To ensure high performance and low memory footprint, the terminal grid avoids individual `Cell` object instantiated for every coordinate.
+To ensure high performance and low memory footprint, there is no individual `Cell` object instantiated for every coordinate.
 
-Instead, each `Row` stores its data in parallel primitive arrays (`int[]` for Unicode characters, `byte[]` for colors, and `boolean[]` for styles). This entirely eliminates the overhead of Java object headers and references per cell, making the buffer cache-friendly and significantly reducing Garbage Collector pressure.
+Instead, the buffer is built using the pattern. Each `Row` stores its data in parallel primitive arrays (`int[]` for Unicode characters, `byte[]` for 16 standard ANSI colors, and `boolean[]` for styles like bold, italic, underline). This entirely eliminates the overhead of Java object headers and references per cell, making the buffer highly cache-friendly.
 
-Visual styling is encapsulated in the `TextAttributes` Java record. It serves only as the global "brush" state in the `TerminalBuffer` and as a lightweight Data Transfer Object (DTO) generated on-the-fly when querying cell prperties.
+Visual styling is encapsulated in the `TextAttributes` Java record. It serves only as the global "brush" state in the `TerminalBuffer` and as a lightweight Data Transfer Object (DTO) generated on-the-fly when querying cell properties, maintaining immutability without polluting the core grid memory.
 
 ## Build & Test
 
@@ -72,6 +71,9 @@ Operations that modify the buffer take the current cursor position and text attr
 // Set text attributes for subsequent writes (e.g., foreground, background, bold, italic, underline)
 TextAttributes attrs = new TextAttributes((byte)1, (byte)2, true, false, false);
 buffer.setAttributes(attrs);
+
+// Resizing buffer with all its content
+buffer.resize(72,28); // buffer will rewrite all its content to new screen with given dimensions
 
 // Insert text (automatically handles wrapping and wide characters)
 buffer.insertText("Hello, Terminal! 🚀");
